@@ -8,6 +8,7 @@ import './App.css';
  */
 interface IState {
   data: ServerRespond[],
+  showGraph: boolean, //new showGraph boolean for when we want to show the graph
 }
 
 /**
@@ -22,6 +23,7 @@ class App extends Component<{}, IState> {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
       data: [],
+      showGraph: false, //at first the show graph is false, the user needs to click on stream data for it to be true
     };
   }
 
@@ -29,18 +31,30 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+    if (this.state.showGraph){ //if show graph is true then it'll render the graph
+        return (<Graph data={this.state.data}/>)
+    }
+
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
-  getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      // Update the state by creating a new array of data that consists of
-      // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
-    });
+  getDataFromServer() { //this gets data from server
+    let x = 0;
+    const interval = setInterval(() => { //doing this function at set interval states
+        DataStreamer.getData((serverResponds: ServerRespond[]) => {
+          this.setState({
+            data : serverResponds, //sets data to the serverResponds
+            showGraph : true, //the graph will now be shown
+           });
+        });
+        x++;
+        if (x>1000) {//clears the interval after every second
+            clearInterval(interval);
+        }
+    }, 100);// does this function every 100ms
+
   }
 
   /**
